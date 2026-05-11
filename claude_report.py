@@ -127,7 +127,7 @@ ESTILO:
 Devuelve SOLO el HTML completo, sin explicaciones ni bloques de código markdown. Empieza directamente con <!DOCTYPE html>"""
 
     message = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-6",
         max_tokens=8000,
         messages=[{"role": "user", "content": prompt}]
     )
