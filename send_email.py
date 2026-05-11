@@ -87,7 +87,9 @@ def enviar_correo(destinatarios: list, asunto: str, html: str):
     )
     msg.attach(adjunto)
 
-    # Enviar por Gmail SMTP
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(remitente, password)
-        server.sendmail(remitente, destinatarios, msg.as_string())
+    # Enviar por Outlook/Office 365 SMTP
+with smtplib.SMTP("smtp.office365.com", 587) as server:
+    server.ehlo()
+    server.starttls()
+    server.login(remitente, password)
+    server.sendmail(remitente, destinatarios, msg.as_string())
