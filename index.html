@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tickets Proyecto Workflow IT — Vista Comparativa</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f2f5;color:#1e293b;}
+:root{--blue:#0c3c6e;--blue2:#1a5fa8;--green:#10b981;--yellow:#f59e0b;--red:#dc2626;--purple:#8b5cf6;--gray:#64748b;}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,#0c3c6e 0%,#1a5fa8 100%);padding:28px 40px;color:#fff;position:relative;overflow:hidden;}
+.header::after{content:'';position:absolute;top:-60px;right:-60px;width:220px;height:220px;background:rgba(255,255,255,0.05);border-radius:50%;}
+.header::before{content:'';position:absolute;bottom:-40px;right:120px;width:140px;height:140px;background:rgba(255,255,255,0.04);border-radius:50%;}
+.header h1{font-size:1.75rem;font-weight:700;letter-spacing:-.5px;}
+.header p{font-size:.9rem;opacity:.8;margin-top:4px;}
+.header-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);padding:4px 12px;border-radius:20px;font-size:.78rem;margin-top:10px;}
+
+/* TABS */
+.tabs-wrapper{background:#fff;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.tabs{display:flex;padding:0 32px;gap:2px;}
+.tab-btn{padding:14px 18px;background:none;border:none;cursor:pointer;font-size:.88rem;font-weight:500;color:#64748b;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;}
+.tab-btn:hover{color:#1a5fa8;background:#f8fafc;}
+.tab-btn.active{color:#0c3c6e;border-bottom-color:#0c3c6e;font-weight:600;}
+
+/* CONTENT */
+.tab-content{display:none;padding:28px 32px;animation:fadeIn .25s ease;}
+.tab-content.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;}
+.kpi-card{background:#fff;border-radius:12px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:4px solid var(--blue);}
+.kpi-card.green{border-left-color:var(--green);}
+.kpi-card.yellow{border-left-color:var(--yellow);}
+.kpi-card.purple{border-left-color:var(--purple);}
+.kpi-card.red{border-left-color:var(--red);}
+.kpi-label{font-size:.78rem;color:#64748b;text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+.kpi-val{font-size:2rem;font-weight:700;color:#0c3c6e;line-height:1.1;margin:4px 0;}
+.kpi-sub{font-size:.78rem;color:#94a3b8;}
+
+/* CHART CARDS */
+.chart-card{background:#fff;border-radius:12px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:20px;}
+.chart-card h3{font-size:.95rem;font-weight:600;color:#0c3c6e;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.chart-card h3 span{font-size:1rem;}
+.chart-wrap{position:relative;height:280px;}
+.chart-wrap-sm{position:relative;height:220px;}
+.chart-wrap-lg{position:relative;height:340px;}
+.chart-wrap-xl{position:relative;height:400px;}
+.chart-wrap-horiz{position:relative;height:320px;}
+.chart-wrap-horiz-lg{position:relative;height:480px;}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+
+/* TABLES */
+.table-wrap{overflow-x:auto;border-radius:8px;border:1px solid #e2e8f0;}
+table{width:100%;border-collapse:collapse;font-size:.83rem;}
+thead tr{background:#f1f5f9;}
+th{padding:10px 12px;text-align:left;font-weight:600;color:#475569;font-size:.78rem;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;}
+td{padding:9px 12px;border-top:1px solid #f1f5f9;vertical-align:top;}
+tr:hover td{background:#f8fafc;}
+.num{text-align:right;}
+.mono{font-family:monospace;font-size:.82rem;}
+
+/* PILLS */
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.73rem;font-weight:600;white-space:nowrap;}
+.pill-tarea{background:#fee2e2;color:#dc2626;}
+.pill-aprob{background:#fef9c3;color:#92400e;}
+.pill-green{background:#d1fae5;color:#065f46;}
+.pill-blue{background:#dbeafe;color:#1e40af;}
+.pill-gray{background:#f1f5f9;color:#475569;}
+.pill-red{background:#fee2e2;color:#991b1b;}
+.pill-purple{background:#ede9fe;color:#5b21b6;}
+
+/* FORM CARDS */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px;margin-bottom:24px;}
+.form-card{background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,.06);border-top:3px solid #1a5fa8;}
+.form-card h4{font-size:.92rem;font-weight:700;color:#0c3c6e;margin-bottom:10px;}
+.form-meta{display:flex;gap:16px;margin-bottom:12px;}
+.form-metric{text-align:center;}
+.form-metric .val{font-size:1.6rem;font-weight:700;color:#0c3c6e;}
+.form-metric .lbl{font-size:.72rem;color:#94a3b8;text-transform:uppercase;}
+.delta-pos{color:#10b981;font-weight:700;}
+.delta-neg{color:#dc2626;font-weight:700;}
+.top3-title{font-size:.75rem;font-weight:600;color:#64748b;text-transform:uppercase;margin:10px 0 6px;}
+.top3-item{background:#f8fafc;border-radius:6px;padding:7px 10px;margin-bottom:5px;font-size:.8rem;}
+.top3-item .ritm-id{font-weight:700;color:#0c3c6e;font-size:.78rem;}
+.top3-item .sla-val{color:#dc2626;font-weight:700;}
+
+/* SUB-TABS */
+.sub-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+.sub-tab-btn{padding:8px 16px;background:#e2e8f0;border:none;border-radius:20px;cursor:pointer;font-size:.82rem;font-weight:500;color:#475569;transition:all .2s;}
+.sub-tab-btn:hover{background:#cbd5e1;}
+.sub-tab-btn.active{background:#0c3c6e;color:#fff;}
+.sub-tab-content{display:none;}
+.sub-tab-content.active{display:block;}
+
+/* IMPACT */
+.impact-section{margin-bottom:28px;}
+.impact-section h3{font-size:1rem;font-weight:700;color:#0c3c6e;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #e2e8f0;}
+.kpi-grid-5{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:18px;}
+.kpi-sm{background:#fff;border-radius:10px;padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,.06);text-align:center;}
+.kpi-sm .v{font-size:1.5rem;font-weight:700;color:#0c3c6e;}
+.kpi-sm .l{font-size:.72rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
+.insight-box{background:#eff6ff;border-left:4px solid #1a5fa8;border-radius:0 8px 8px 0;padding:14px 18px;font-size:.85rem;color:#1e3a5f;line-height:1.6;}
+.insight-box strong{color:#0c3c6e;}
+
+/* YEAR TABS */
+.year-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.year-tab{padding:6px 18px;border:2px solid #e2e8f0;border-radius:6px;background:#fff;cursor:pointer;font-weight:600;font-size:.85rem;color:#475569;transition:all .2s;}
+.year-tab.active{background:#0c3c6e;color:#fff;border-color:#0c3c6e;}
+
+.section-title{font-size:1rem;font-weight:700;color:#0c3c6e;margin:20px 0 12px;display:flex;align-items:center;gap:8px;}
+.badge-count{background:#0c3c6e;color:#fff;border-radius:10px;padding:1px 8px;font-size:.75rem;}
+
+.divider{height:1px;background:#e2e8f0;margin:20px 0;}
+
+.cuello-tarea{background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:8px;font-size:.72rem;font-weight:700;}
+.cuello-aprob{background:#fef9c3;color:#92400e;padding:2px 7px;border-radius:8px;font-size:.72rem;font-weight:700;}
+.cuello-sin{background:#f1f5f9;color:#475569;padding:2px 7px;border-radius:8px;font-size:.72rem;font-weight:700;}
+
+.est-ok{color:#10b981;font-weight:600;}
+.est-open{color:#f59e0b;font-weight:600;}
+
+.progress-bar{background:#e2e8f0;border-radius:4px;height:6px;margin-top:4px;}
+.progress-fill{height:6px;border-radius:4px;background:#0c3c6e;}
+.progress-fill.green{background:#10b981;}
+.progress-fill.red{background:#dc2626;}
+.progress-fill.yellow{background:#f59e0b;}
+
+@media(max-width:768px){
+  .header{padding:18px 16px;}
+  .header h1{font-size:1.2rem;}
+  .tabs{padding:0 8px;}
+  .tab-btn{padding:12px 10px;font-size:.78rem;}
+  .tab-content{padding:16px;}
+  .grid-2{grid-template-columns:1fr;}
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📊 Tickets Proyecto Workflow IT — Vista Comparativa</h1>
+  <p>AFP Capital · Ingeniería TI · Datos al 12 May 2026 20:46</p>
+  <div class="header-badge">⚙️ Fuente: ServiceNow &nbsp;|&nbsp; 🗓 Período: Ene 2025 – May 2026 &nbsp;|&nbsp; 📦 Total RITM: 3.558</div>
+</div>
+
+<div class="tabs-wrapper">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('tab1',this)">📊 Resumen Ejecutivo</button>
+    <button class="tab-btn" onclick="showTab('tab2',this)">🗂 Vista por Formulario</button>
+    <button class="tab-btn" onclick="showTab('tab3',this)">📋 Detalles SLA</button>
+    <button class="tab-btn" onclick="showTab('tab4',this)">⏱ Análisis de Tiempos</button>
+    <button class="tab-btn" onclick="showTab('tab5',this)">🚀 Impacto y Mejoras</button>
+  </div>
+</div>
+
+<!-- ═══ TAB 1: RESUMEN EJECUTIVO ═══ -->
+<div id="tab1" class="tab-content active">
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Total RITM 2025</div>
+      <div class="kpi-val">1.913</div>
+      <div class="kpi-sub">SLA Prom: 24.4 hrs</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Total RITM 2026</div>
+      <div class="kpi-val">1.645</div>
+      <div class="kpi-sub">SLA Prom: 26.2 hrs</div>
+    </div>
+    <div class="kpi-card yellow">
+      <div class="kpi-label">SLA Tarea Prom 2025</div>
+      <div class="kpi-val">22.0</div>
+      <div class="kpi-sub">hrs promedio por tarea</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-label">SLA Tarea Prom 2026</div>
+      <div class="kpi-val">24.7</div>
+      <div class="kpi-sub">hrs promedio por tarea</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">SLA Aprobación 2025</div>
+      <div class="kpi-val">1.184.6</div>
+      <div class="kpi-sub">hrs promedio aprobación</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">SLA Aprobación 2026</div>
+      <div class="kpi-val">40.0</div>
+      <div class="kpi-sub">↓ 96.6% mejora aprobación</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <h3><span>📈</span> Volumetría Mensual 2025 vs 2026</h3>
+      <div class="chart-wrap-lg">
+        <canvas id="chartVolMensual"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3><span>⏱</span> SLA Promedio Mensual 2025 vs 2026</h3>
+      <div class="chart-wrap-lg">
+        <canvas id="chartSLAMensual"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <h3><span>📊</span> Comparativa SLA Tarea vs SLA Aprobación — Promedios Anuales</h3>
+    <div class="grid-2" style="margin-bottom:16px;">
+      <div style="background:#f8fafc;border-radius:10px;padding:16px;text-align:center;border:1px solid #e2e8f0;">
+        <div style="font-size:.8rem;color:#64748b;font-weight:600;text-transform:uppercase;">SLA Tarea</div>
+        <div style="display:flex;justify-content:center;gap:32px;margin-top:10px;">
+          <div><div style="font-size:1.5rem;font-weight:700;color:#0c3c6e;">22.0h</div><div style="font-size:.75rem;color:#94a3b8;">2025</div></div>
+          <div style="font-size:1.5rem;color:#e2e8f0;line-height:1.5;">→</div>
+          <div><div style="font-size:1.5rem;font-weight:700;color:#f59e0b;">24.7h</div><div style="font-size:.75rem;color:#94a3b8;">2026</div></div>
+          <div><div class="pill pill-red" style="font-size:.9rem;padding:4px 10px;">+12.3%</div></div>
+        </div>
+      </div>
+      <div style="background:#f8fafc;border-radius:10px;padding:16px;text-align:center;border:1px solid #e2e8f0;">
+        <div style="font-size:.8rem;color:#64748b;font-weight:600;text-transform:uppercase;">SLA Aprobación</div>
+        <div style="display:flex;justify-content:center;gap:32px;margin-top:10px;">
+          <div><div style="font-size:1.5rem;font-weight:700;color:#dc2626;">1.184.6h</div><div style="font-size:.75rem;color:#94a3b8;">2025</div></div>
+          <div style="font-size:1.5rem;color:#e2e8f0;line-height:1.5;">→</div>
+          <div><div style="font-size:1.5rem;font-weight:700;color:#10b981;">40.0h</div><div style="font-size:.75rem;color:#94a3b8;">2026</div></div>
+          <div><div class="pill pill-green" style="font-size:.9rem;padding:4px 10px;">−96.6%</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="chartTareaVsAprob"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ TAB 2: VISTA POR FORMULARIO ═══ -->
+<div id="tab2" class="tab-content">
+
+  <div class="form-grid">
+
+    <!-- Gestión de Cuentas de Servicio Cloud -->
+    <div class="form-card">
+      <h4>☁️ Gestión de Cuentas de Servicio Cloud</h4>
+      <div class="form-meta">
+        <div class="form-metric"><div class="val">590</div><div class="lbl">RITM 2026</div></div>
+        <div class="form-metric"><div class="val">27.4<span style="font-size:1rem">h</span></div><div class="lbl">SLA Prom 2026</div></div>
+        <div class="form-metric"><div class="val delta-neg">+41%</div><div class="lbl">vs 2025 (19.4h)</div></div>
+      </div>
+      <div class="top3-title">🔴 Top 3 Cuellos de Botella 2026</div>
+      <div class="top3-item">
+        <span class="ritm-id">RITM0232863</span> — <span class="sla-val">207.3h</span>
+        <span class="cuello-tarea">Tarea</span><br>
+        <span style="font-size:.75rem;color:#64748b;">Kyndryl_Accesos Cloud · Ene 2026 · Closed Complete</span>
+      </div>
+      <div class="top3-item">
+        <span class="ritm-id">RITM0232396</span> — <span class="sla-val">140.0h</span>
+        <span class="cuello-tarea">Tarea</span><br>
+        <span style="font-size:.75rem;color:#64748b;">Kyndryl_Accesos Cloud · Ene 2026 · Closed Complete</span>
+      </div>
+      <div class="top3-item">
+        <span class="ritm-id">RITM0234312</span> — <span class="sla-val">136.3h</span>
+        <span class="cuello-tarea">Tarea</span><br>
+        <span style="font-size:.75rem;color:#64748b;">Kyndryl_Accesos Cloud · Ene 2026 · Closed Complete</span>
+      </div>
+      <div style="margin-top:10px;">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>RITM</th><th>Cuello</th><th>SLA T.</th><th>SLA A.</th><th>Est. Tarea</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">RITM0232863</td><td><span class="cuello-tarea">Tarea</span></td><td class="num">207.3h</td><td class="num">—</td><td class="est-ok">Closed</td></tr>
+              <tr><td class="mono">RITM0232396</td><td><span class="cuello-tarea">Tarea</span></td><td class="num">140.0h</td><td class="num">—</td><td class="est-ok">Closed</td></tr>
+              <tr><td class="mono">RITM0234312</td><td><span class="cuello-tarea">Tarea</span></td><td class="num">136.3h</td><td class="num">—</td><td class="est-ok">Closed</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gestión de Tablas -->
+    <div class="form-card">
+      <h4>🗃️ Gestión de Tablas</h4>
+      <div class="form-meta">
+        <div class="form-metric"><div class="val">312</div><div class="lbl">RITM 2026</div></div>
+        <div class="form-metric"><div class="val">23.1<span style="font-size:1rem">h</span></div><div class="lbl">SLA Prom 2026</div></div>
+        <div class="form-metric"><div class="val delta-neg">+3%</div><div class="lbl">vs 2025 (22.4h)</div></div>
+      </div>
+      <div class="top3-title">🔴 Top 3 Cuellos de Botella 2026</div>
+      <div class="top3-item">
+        <span class="ritm-id">RITM0233126</span> — <span class="sla-val">104.3h</span>
+        <span class="cuello-tarea">Tarea</span><br>
+        <span style="font-size:.75rem;color:#64748b;">Ingenieria SURA · Ene 2026 · Closed Complete</span>
+      </div>
+      <div class="top3-item">
+        <span class="ritm-id">RITM0243093</span> — <span class="sla-val">103.0h</span>
+        <span class="cuello-aprob">Aprobación</span><br>
+        <span style="font-size:.75rem;color:#64748b;">Kyndryl_Ingeniería · Abr 2026 · Closed Complete</span>
+      </div>
+      <div class="top3-item">
+        <span class="ritm-id">RITM0242001</span> — <span class="sla-val">103.0h</span>
+        <span class="cuello-tarea">Tarea</span><br>
+        <span style="font-size:.75rem;color:#64748b;">Kyndryl_Ingeniería · Mar 2026 · Closed Complete</span>
+      </div>
+      <div style="margin-top:10px;">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>RITM</th><th>Cuello</th><th>SLA T.</th><th>SLA A.</th><th>Est. Tarea</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">RITM0233126</td><td><span class="cuello-tarea">Tarea</span></td><td class="num">104.3h</td><td class="num">—</td><td class="est-ok">Closed</td></tr>
+              <tr><td class="mono">RITM0243093</td><td><span class="cuello-aprob">Aprobación</span></td><td class="num">41.1h</td><td class="num">247.8h</td><td class="est-ok">Closed</td></tr>
+              <tr><td class="mono">RITM0242001</td><td><span class="cuello-tarea">Tarea</span></td><td class="num">89.2h</td><td class="num">36.5h</td><td class="est-ok">Closed</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gestión de Usuarios Cloud -->
+    <div class="form-card">
+      <h4>👤 Gestión de Usuarios Cloud</h4>
+      <div class="form-meta">
+        <div class="form-metric"><div class="val">567</div><div class="lbl">RITM 2026</div></div>
+        <div class="form-metric"><div class="val">24.2<span style="font-size:1rem">h</span></div><div class="lbl">SLA Prom 2026</div></div>
+        <div class="form-metric"><div class="val delta-pos">−14%</div><div class="lbl">vs 2025 (28.2h)</div></div>
+      </div>
+      <div class="top3-title">🔴 Top 3 Cuellos de Botella 2026</div>
+      <div class="top3-item">
+        <span class="ritm-id">RITM0232814</span> — <span class="sla-val">160.9h</span>
+        <span class="cuello-tarea">Tarea</span><br>
+        <span style="font-size:.75rem;color:#64748b;">Kyndryl_Accesos Cloud · Ene 2026 · Closed Complete</span>
+      </div>
+      <div class="top3-item">
+        <span class="ritm-id">RITM0233982</span> — <span class="sla-val">121.0h</span>
+        <span class="cuello-tarea">Tarea</span><br>
+        <span style="font-size:.75rem;color:#64748b;">Kyndryl_Accesos Cloud · Ene 2026 · Closed Complete</span>
+      </div>
+      <div class="top3-item">
+        <span class="ritm-id">RITM0234322</span> — <span class="sla-val">117.0h</span>
+        <span class="cuello-tarea">Tarea</span><br>
+        <span style="font-size:.75rem;color:#64748b;">Kyndryl_Accesos Cloud · Ene 2026 · Closed Complete</span>
+      </div>
+      <div style="margin-top:10px;">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>RITM</th><th>Cuello</th><th>SLA T.</th><th>SLA A.</th><th>Est. Tarea</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">RITM0232814</td><td><span class="cuello-tarea">Tarea</span></td><td class="num">160.9h</td><td class="num">—</td><td class="est-ok">Closed</td></tr>
+              <tr><td class="mono">RITM0233982</td><td><span class="cuello-tarea">Tarea</span></td><td class="num">121.0h</td><td class="num">—</td><td class="est-ok">Closed</td></tr>
+              <tr><td class="mono">RITM0234322</td><td><span class="cuello-tarea">Tarea</span></td><td class="num">117.0h</td><td class="num">—</td><td class="est-ok">Closed</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gestión de Buckets -->
+    <div class="form-card">
+      <h4>🪣 Gestión de Buckets</h4>
+      <div class="form-meta">
