@@ -1,7 +1,8 @@
 import os
-import base64
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
+from sendgrid.helpers.mail import (
+    Mail, To, Header, Category
+)
 from datetime import datetime
 
 
@@ -10,7 +11,6 @@ def enviar_correo(destinatarios: list, asunto: str, html: str, url_reporte: str 
     api_key   = os.environ["SENDGRID_API_KEY"]
     fecha_fmt = fecha or datetime.now().strftime("%d/%m/%Y %H:%M")
 
-    # Cuerpo del correo — liviano, con el link al dashboard
     cuerpo = f"""
     <html><body style="font-family:Segoe UI,Arial,sans-serif;background:#f5f5f5;padding:20px;margin:0">
     <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1)">
@@ -51,7 +51,8 @@ def enviar_correo(destinatarios: list, asunto: str, html: str, url_reporte: str 
         </div>
 
         <div style="margin-top:24px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:11px;color:#9ca3af">
-          Reporte generado automáticamente cada lunes. Datos extraídos directamente de ServiceNow.
+          Reporte generado automáticamente cada lunes. Datos extraídos directamente de ServiceNow.<br>
+          Enviado por: Andrea Tapia · Ingeniería TI AFP Capital · atapia06@sura.cl
         </div>
       </div>
     </div>
@@ -59,14 +60,35 @@ def enviar_correo(destinatarios: list, asunto: str, html: str, url_reporte: str 
     """
 
     msg = Mail(
-        from_email=remitente,
+        from_email=(remitente, "Ingeniería TI — AFP Capital"),
         subject=f"{asunto} — {datetime.now().strftime('%d/%m/%Y')}",
         html_content=cuerpo,
         to_emails=destinatarios
     )
 
+    # ── Categorías de SendGrid ─────────────────────────────────────────────────
+    # Aparecen en Activity Feed para identificar el origen del correo
+    msg.category = [
+        Category("reporte-automatico"),
+        Category("workflow-it"),
+        Category("afp-capital"),
+        Category("ingenieria-ti"),
+    ]
+
+    # ── Headers personalizados ─────────────────────────────────────────────────
+    # Identifican el sistema que envía el correo
+    msg.header = [
+        Header("X-Origen-Sistema",    "GitHub-Actions-WorkflowIT"),
+        Header("X-Proyecto",          "Proyecto-Workflow-IT-AFP-Capital"),
+        Header("X-Responsable",       "atapia06@sura.cl"),
+        Header("X-Equipo",            "ServiceNow"),
+        Header("X-Tipo-Reporte",      "Reporte-Semanal-ServiceNow"),
+        Header("X-Generado-Por",      "Claude-API-Anthropic"),
+    ]
+
     sg = SendGridAPIClient(api_key)
     resp = sg.send(msg)
     print(f"✅ Correo enviado — Status: {resp.status_code}")
     print(f"   Destinatarios: {destinatarios}")
+    print(f"   Categorías: reporte-automatico, workflow-it, afp-capital, ingenieria-ti")
     print(f"   Link reporte: {url_reporte}")
