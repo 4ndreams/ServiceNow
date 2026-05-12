@@ -1,6 +1,6 @@
 import os
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import defaultdict
 
 SN_BASE  = os.environ.get("SN_BASE_URL", "")
@@ -20,6 +20,39 @@ CAT_ITEMS = ",".join([
 
 AUTH    = (SN_USER, SN_PASS)
 HEADERS = {"Accept": "application/json"}
+
+FORMATOS_FECHA = [
+    "%Y-%m-%d %H:%M:%S",
+    "%d-%m-%Y %H:%M:%S",
+    "%d/%m/%Y %H:%M:%S",
+    "%m/%d/%Y %H:%M:%S",
+    "%Y-%m-%dT%H:%M:%S",
+    "%d-%m-%Y",
+    "%Y-%m-%d",
+]
+
+
+def _parsear_fecha(fecha_str):
+    if not fecha_str:
+        return None
+    fecha_str = fecha_str.strip()
+    for fmt in FORMATOS_FECHA:
+        try:
+            return datetime.strptime(fecha_str, fmt)
+        except ValueError:
+            continue
+    print(f"WARNING: No se pudo parsear la fecha: {repr(fecha_str)}")
+    return None
+
+
+def _parsear_mes(fecha_str):
+    dt = _parsear_fecha(fecha_str)
+    return dt.strftime("%Y-%m") if dt else ""
+
+
+def _parsear_anio(fecha_str):
+    dt = _parsear_fecha(fecha_str)
+    return str(dt.year) if dt else ""
 
 
 def _paginar(tabla, campos, query):
@@ -56,12 +89,13 @@ def _horas_habiles(inicio_str, fin_str):
     if not inicio_str or not fin_str:
         return None
     try:
-        from datetime import timedelta
-        fmt = "%Y-%m-%d %H:%M:%S"
-        inicio = datetime.strptime(inicio_str, fmt)
-        fin    = datetime.strptime(fin_str, fmt)
+        inicio = _parsear_fecha(inicio_str)
+        fin    = _parsear_fecha(fin_str)
+        if not inicio or not fin:
+            return None
         if inicio >= fin:
             return 0.0
+
         HORA_INI, HORA_FIN = 8, 19
 
         def clip_ini(dt):
@@ -101,13 +135,14 @@ def _horas_habiles(inicio_str, fin_str):
             cur = datetime(cur.year, cur.month, cur.day) + timedelta(days=1)
 
         return round(total, 2)
-    except Exception:
+    except Exception as e:
+        print(f"WARNING: Error calculando horas habiles: {e}")
         return None
 
 
 def fetch_all_data():
-    anio_actual  = datetime.now().year
-    fecha_desde  = f"{anio_actual - 1}-01-01"
+    anio_actual = datetime.now().year
+    fecha_desde = f"{anio_actual - 1}-01-01"
 
     # RITM
     raw_ritm = _paginar(
@@ -115,6 +150,12 @@ def fetch_all_data():
         "number,cat_item,stage,opened_by,sys_created_on,closed_at",
         f"opened_at>={fecha_desde}^cat_itemIN{CAT_ITEMS}"
     )
+
+    # Debug formato de fecha
+    if raw_ritm:
+        ejemplo = _val(raw_ritm[0].get("sys_created_on", ""))
+        print(f"DEBUG fecha cruda: {repr(ejemplo)}")
+        print(f"DEBUG fecha parseada: {_parsear_fecha(ejemplo)}")
 
     ritm_list = []
     for r in raw_ritm:
@@ -127,8 +168,8 @@ def fetch_all_data():
             "solicitante": _val(r.get("opened_by", "")),
             "creado":      creado,
             "cerrado":     cerrado,
-            "mes":         creado[:7] if creado else "",
-            "anio":        creado[:4] if creado else "",
+            "mes":         _parsear_mes(creado),
+            "anio":        _parsear_anio(creado),
             "sla":         _horas_habiles(creado, cerrado),
         })
 
@@ -139,9 +180,9 @@ def fetch_all_data():
         f"opened_at>={fecha_desde}^stateIN-5,3,1^cat_itemIN{CAT_ITEMS}"
     )
 
-    task_sla   = defaultdict(list)
-    task_grupo = defaultdict(list)
-    task_estado= defaultdict(list)
+    task_sla    = defaultdict(list)
+    task_grupo  = defaultdict(list)
+    task_estado = defaultdict(list)
     for t in raw_tasks:
         ritm = _val(t.get("request_item", ""))
         ini  = _val(t.get("opened_at", ""))
@@ -157,15 +198,15 @@ def fetch_all_data():
             task_estado[ritm].append(e)
 
     # Aprobaciones
-    numeros = {r["numero"] for r in ritm_list}
+    numeros   = {r["numero"] for r in ritm_list}
     raw_aprob = _paginar(
         "sysapproval_approver",
         "state,sysapproval,approver,sys_created_on,sys_updated_on",
         f"sys_created_on>={fecha_desde}"
     )
 
-    aprob_sla   = defaultdict(list)
-    aprob_estado= defaultdict(list)
+    aprob_sla    = defaultdict(list)
+    aprob_estado = defaultdict(list)
     for a in raw_aprob:
         ritm = _val(a.get("sysapproval", ""))
         if ritm not in numeros:
@@ -182,27 +223,27 @@ def fetch_all_data():
     # Enriquecer RITM
     def prom(lst):
         v = [x for x in lst if x is not None]
-        return round(sum(v)/len(v), 1) if v else None
+        return round(sum(v) / len(v), 1) if v else None
 
     for r in ritm_list:
-        n = r["numero"]
+        n  = r["numero"]
         st = task_sla.get(n)
         sa = aprob_sla.get(n)
-        r["sla_tarea"]    = round(sum(st)/len(st), 2) if st else None
+        r["sla_tarea"]    = round(sum(st) / len(st), 2) if st else None
         r["sla_aprob"]    = round(max(sa), 2) if sa else None
         r["grupo"]        = ", ".join(set(task_grupo.get(n, [])))
         r["estado_tarea"] = ", ".join(set(task_estado.get(n, [])))
         r["estado_aprob"] = ", ".join(set(aprob_estado.get(n, [])))
         if r["sla_aprob"] and r["sla_tarea"]:
-            r["cuello"] = "Aprobación" if r["sla_aprob"] > r["sla_tarea"] else "Tarea"
+            r["cuello"] = "Aprobacion" if r["sla_aprob"] > r["sla_tarea"] else "Tarea"
         elif r["sla_tarea"]:
             r["cuello"] = "Tarea"
         elif r["sla_aprob"]:
-            r["cuello"] = "Aprobación"
+            r["cuello"] = "Aprobacion"
         else:
             r["cuello"] = "Sin datos"
 
-    # Agrupar
+    # Agrupar por año
     por_anio = defaultdict(list)
     for r in ritm_list:
         if r["anio"]:
@@ -235,6 +276,12 @@ def fetch_all_data():
 
     aa = str(anio_actual)
     ap = str(anio_actual - 1)
+
+    # Debug resumen
+    print(f"DEBUG años detectados: {sorted(por_anio.keys())}")
+    print(f"DEBUG RITM por año: { {a: len(v) for a, v in por_anio.items()} }")
+    con_sla = sum(1 for r in ritm_list if r["sla"] is not None)
+    print(f"DEBUG RITM con SLA: {con_sla} de {len(ritm_list)}")
 
     return {
         "fecha_generacion":          datetime.now().strftime("%d %b %Y %H:%M"),
