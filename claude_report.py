@@ -95,7 +95,7 @@ def generar_html(datos: dict) -> str:
         }
     }
 
-    prompt = f"""Eres un asistente de reportería para AFP Capital, área Ingeniería TI.
+    prompt = f"""Eres un asistente de reportería para AFP Capital, área ServieNow.
 
 Con los siguientes datos actualizados de ServiceNow, genera un reporte HTML completo, profesional y visualmente atractivo.
 
@@ -112,7 +112,7 @@ INSTRUCCIONES CRÍTICAS SOBRE CHART.JS:
 
 INSTRUCCIONES GENERALES:
 - Título: "Tickets Proyecto Workflow IT — Vista Comparativa"
-- Subtítulo: "AFP Capital · Ingeniería TI · Datos al {datos['fecha_generacion']}"
+- Subtítulo: "AFP Capital · ServiceNow · Datos al {datos['fecha_generacion']}"
 - Header con gradiente azul oscuro (#0c3c6e a #1a5fa8)
 - 5 pestañas navegables con iconos (usando onclick en JS puro, sin librerías)
 - Todo CSS y JS inline en un solo archivo HTML
@@ -157,7 +157,7 @@ Devuelve SOLO el HTML completo sin explicaciones ni bloques markdown. Empieza co
     print("🤖 Llamando a Claude API...")
     msg = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=8000,
+        max_tokens=16000,
         messages=[{"role": "user", "content": prompt}]
     )
 
