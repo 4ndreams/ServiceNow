@@ -205,7 +205,8 @@ def generar_html(datos: dict) -> str:
             for b in top3:
                 c = b.get("cuello","")
                 cp = "<span class='pill pill-r'>🔧 Tarea</span>" if c == "Tarea" else "<span class='pill pill-y'>⚠ Aprob.</span>" if c == "Aprobacion" else "—"
-                bt_rows += f"<tr><td class='mono'>{_esc(b.get('ritm',''))}</td><td>{b.get('sla') and f\"{b['sla']:.0f}\" or '—'} hrs</td><td>{_esc(b.get('grupo',''))}</td><td>{cp}</td></tr>"
+                sla_fmt = f"{b['sla']:.0f}" if b.get('sla') else '—'
+                bt_rows += f"<tr><td class='mono'>{_esc(b.get('ritm',''))}</td><td>{sla_fmt} hrs</td><td>{_esc(b.get('grupo',''))}</td><td>{cp}</td></tr>"
 
             cards += f"""
             <div class='form-card'>
@@ -615,7 +616,7 @@ function renderCharts() {{
         borderRadius: 3
       }}]
     }},
-    options: {{responsive: true, maintainAspectRatio: false, plugins: {{legend: {{display: false}}}}, scales: {{y: {{max: 100, ticks: {{callback: v => v + '%'}}}}}, x: {{ticks: {{maxRotation: 45}}}}}}}}
+    options: {{responsive: true, maintainAspectRatio: false, plugins: {{legend: {{display: false}}}}, scales: {{y: {{max: 100, ticks: {{callback: v => v + '%'}}}}, x: {{ticks: {{maxRotation: 45}}}}}}}}
   }});
 
   // Cumplimiento dona
