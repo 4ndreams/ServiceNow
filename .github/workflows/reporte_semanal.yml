@@ -5,11 +5,6 @@ on:
     - cron: '0 11 * * 1'
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pages: write
-  id-token: write
-
 jobs:
   generar-reporte:
     runs-on: ubuntu-latest
@@ -35,22 +30,9 @@ jobs:
           SENDGRID_API_KEY:   ${{ secrets.SENDGRID_API_KEY }}
           EMAIL_SENDER:       ${{ secrets.EMAIL_SENDER }}
           EMAIL_RECIPIENTS:   ${{ secrets.EMAIL_RECIPIENTS }}
-          GITHUB_REPO:        ${{ github.repository }}
         run: python main.py
 
-      - name: Preparar carpeta para GitHub Pages
-        run: |
-          mkdir -p ./docs
-          cp reporte_semanal.html ./docs/index.html
-
-      - name: Publicar en GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
-          publish_branch: gh-pages
-
-      - name: Guardar como artefacto (backup)
+      - name: Guardar como artefacto
         if: always()
         uses: actions/upload-artifact@v4
         with:
