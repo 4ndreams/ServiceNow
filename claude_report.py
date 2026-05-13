@@ -5,15 +5,15 @@ import anthropic
 
 
 def _descargar_chartjs() -> str:
-    """Descarga Chart.js y lo retorna como string para embeber en el HTML."""
-    url = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"
+    """Lee Chart.js desde el archivo local del repositorio."""
+    ruta = os.path.join(os.path.dirname(__file__), "chart.min.js")
     try:
-        with urllib.request.urlopen(url, timeout=30) as resp:
-            codigo = resp.read().decode("utf-8")
-        print(f"✅ Chart.js descargado: {len(codigo):,} bytes")
+        with open(ruta, "r", encoding="utf-8") as f:
+            codigo = f.read()
+        print(f"✅ Chart.js cargado desde archivo local: {len(codigo):,} bytes")
         return codigo
     except Exception as e:
-        print(f"WARNING: No se pudo descargar Chart.js: {e}")
+        print(f"WARNING: No se pudo leer chart.min.js: {e}")
         return ""
 
 
