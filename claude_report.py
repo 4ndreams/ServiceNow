@@ -218,11 +218,15 @@ def generar_html(datos: dict) -> str:
                 <div class='form-vol'>{vol}<div class='form-vol-lbl'>RITM {aa}</div></div>
               </div>
               <div class='form-body'>
-                <div class='bt-title'>Cuellos de botella {aa}</div>
-                <table class='bt-table'>
-                  <thead><tr><th>RITM</th><th>SLA</th><th>Grupo</th><th>Cuello</th></tr></thead>
-                  <tbody>{bt_rows if bt_rows else '<tr><td colspan=4 style="color:#9ca3af">Sin datos</td></tr>'}</tbody>
-                </table>
+                <button class='bt-toggle' onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('span').textContent=this.nextElementSibling.classList.contains('open')?'▲':'▼'">
+                  Cuellos de botella {aa} <span>▼</span>
+                </button>
+                <div class='bt-content'>
+                  <table class='bt-table' style='margin-top:8px'>
+                    <thead><tr><th>RITM</th><th>SLA</th><th>Grupo</th><th>Cuello</th></tr></thead>
+                    <tbody>{bt_rows if bt_rows else '<tr><td colspan=4 style="color:#9ca3af">Sin datos</td></tr>'}</tbody>
+                  </table>
+                </div>
               </div>
             </div>"""
         return cards
@@ -281,7 +285,10 @@ tr:hover td{{background:#f9fafb}}
 .form-vol{{font-size:24px;font-weight:800;color:#0c3c6e;text-align:right}}
 .form-vol-lbl{{font-size:10px;color:#9ca3af}}
 .form-body{{padding:14px 18px}}
-.bt-title{{font-size:10px;font-weight:700;text-transform:uppercase;color:#ef4444;letter-spacing:.5px;margin-bottom:8px}}
+.bt-toggle{{background:none;border:none;cursor:pointer;font-size:11px;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:.5px;padding:0;display:flex;align-items:center;gap:6px}}
+.bt-toggle:hover{{color:#dc2626}}
+.bt-content{{display:none;margin-top:8px}}
+.bt-content.open{{display:block}}
 .bt-table{{font-size:11px}}
 .delta-r{{color:#dc2626;font-size:10px;font-weight:600;margin-left:6px}}
 .delta-g{{color:#059669;font-size:10px;font-weight:600;margin-left:6px}}
@@ -329,8 +336,8 @@ tr:hover td{{background:#f9fafb}}
   </div>
 
   <div class="grid2">
-    <div class="card"><h3>Volumetría mensual — {ap} vs {aa}</h3><div class="csub">RITM por mes</div><canvas id="cVol" height="220"></canvas></div>
-    <div class="card"><h3>SLA promedio mensual — {ap} vs {aa}</h3><div class="csub">Horas hábiles por mes (solo tickets cerrados)</div><canvas id="cSla" height="220"></canvas></div>
+    <div class="card"><h3>Volumetría mensual — {ap} vs {aa}</h3><div class="csub">RITM por mes</div><div style="position:relative;height:240px"><canvas id="cVol"></canvas></div></div>
+    <div class="card"><h3>SLA promedio mensual — {ap} vs {aa}</h3><div class="csub">Horas hábiles por mes (solo tickets cerrados)</div><div style="position:relative;height:240px"><canvas id="cSla"></canvas></div></div>
   </div>
 
   <div class="card">
@@ -354,7 +361,7 @@ tr:hover td{{background:#f9fafb}}
         </div>
       </div>
     </div>
-    <canvas id="cAprob" height="200"></canvas>
+    <div style="position:relative;height:220px"><canvas id="cAprob"></canvas></div>
     <div class="interp">{textos.get('resumen_ejecutivo','')}</div>
   </div>
 </div>
@@ -369,7 +376,7 @@ tr:hover td{{background:#f9fafb}}
   <div class="card">
     <h3>Top 10 tickets por SLA — {aa}</h3>
     <div class="csub">Rojo &gt;200 hrs · naranja 100–200 hrs · verde &lt;100 hrs</div>
-    <canvas id="cTop10" height="320"></canvas>
+    <div style="position:relative;height:340px"><canvas id="cTop10"></canvas></div>
   </div>
   <div class="card">
     <h3>Detalle tickets</h3>
@@ -401,14 +408,14 @@ tr:hover td{{background:#f9fafb}}
     <div class="stab" onclick="showS('s4d',this)">Aprobadores</div>
   </div>
   <div id="s4a" class="stc active">
-    <div class="card"><h3>Tiempo promedio por grupo resolutor</h3><div class="csub">Horas hábiles promedio · solo tickets cerrados</div><canvas id="cGrupo" height="280"></canvas>
+    <div class="card"><h3>Tiempo promedio por grupo resolutor</h3><div class="csub">Horas hábiles promedio · solo tickets cerrados</div><div style="position:relative;height:280px"><canvas id="cGrupo"></canvas></div>
     <div class="tw" style="margin-top:14px"><table>
       <thead><tr><th>Grupo</th><th>Total</th><th>Cerrados</th><th>En curso</th><th>SLA prom (hrs)</th><th>SLA total (hrs)</th></tr></thead>
       <tbody>{''.join(f"<tr><td>{_esc(g['grupo'])}</td><td>{g['total']}</td><td>{g['cerrados']}</td><td>{g['en_curso']}</td><td>{g['sla_prom'] or '—'}</td><td>{g['sla_total'] or '—'}</td></tr>" for g in grupos)}</tbody>
     </table></div></div>
   </div>
   <div id="s4b" class="stc">
-    <div class="card"><h3>% Tiempo aprobación vs post-aprobación por formulario</h3><div class="csub">Distribución del tiempo total del ticket</div><canvas id="cForm" height="260"></canvas>
+    <div class="card"><h3>% Tiempo aprobación vs post-aprobación por formulario</h3><div class="csub">Distribución del tiempo total del ticket</div><div style="position:relative;height:260px"><canvas id="cForm"></canvas></div>
     <div class="tw" style="margin-top:14px"><table>
       <thead><tr><th>Formulario</th><th>Total</th><th>SLA prom</th><th>Aprob prom</th><th>Post-aprob prom</th><th>% Aprob</th></tr></thead>
       <tbody>{''.join(f"<tr><td>{_esc(f['elemento'])}</td><td>{f['total']}</td><td>{f['sla_prom'] or '—'} hrs</td><td>{f['aprob_prom'] or '—'} hrs</td><td>{f['post_prom'] or '—'} hrs</td><td>{round((f['pct_aprob'] or 0)*100,1)}%</td></tr>" for f in formularios)}</tbody>
@@ -416,14 +423,14 @@ tr:hover td{{background:#f9fafb}}
   </div>
   <div id="s4c" class="stc">
     <div class="card"><h3>Cumplimiento SLA tareas por grupo</h3><div class="csub">% tareas completadas dentro del objetivo de horas</div>
-    <div class="grid2"><canvas id="cCump" height="240"></canvas><canvas id="cCumpDona" height="240"></canvas></div>
+    <div class="grid2"><div style="position:relative;height:240px"><canvas id="cCump"></canvas></div><div style="position:relative;height:240px"><canvas id="cCumpDona"></canvas></div></div>
     <div class="tw" style="margin-top:14px"><table>
       <thead><tr><th>Grupo</th><th>Total tareas</th><th>Dentro SLA</th><th>Fuera SLA</th><th>% Cumplimiento</th><th>SLA prom</th></tr></thead>
       <tbody>{''.join(f"<tr><td>{_esc(c['grupo'])}</td><td>{c['total']}</td><td>{c['dentro']}</td><td>{c['fuera']}</td><td>{round(c['pct']*100,1)}%</td><td>{c['sla_prom'] or '—'} hrs</td></tr>" for c in cump)}</tbody>
     </table></div></div>
   </div>
   <div id="s4d" class="stc">
-    <div class="card"><h3>Tiempo promedio por aprobador</h3><div class="csub">Top 10 · horas hábiles promedio de aprobación</div><canvas id="cAprob2" height="280"></canvas>
+    <div class="card"><h3>Tiempo promedio por aprobador</h3><div class="csub">Top 10 · horas hábiles promedio de aprobación</div><div style="position:relative;height:280px"><canvas id="cAprob2"></canvas></div>
     <div class="tw" style="margin-top:14px"><table>
       <thead><tr><th>Aprobador</th><th>Total</th><th>Completadas</th><th>SLA prom (hrs)</th><th>SLA total (hrs)</th></tr></thead>
       <tbody>{''.join(f"<tr><td>{_esc(a['aprobador'])}</td><td>{a['total']}</td><td>{a['completadas']}</td><td>{a['sla_prom'] or '—'}</td><td>{a['sla_total'] or '—'}</td></tr>" for a in aprobadores)}</tbody>
@@ -446,8 +453,8 @@ tr:hover td{{background:#f9fafb}}
     <div class="ik"><div class="il">% Mejora SLA</div><div class="iv" style="color:{'#059669' if (mt.get('pct_mejora',0) or 0)>0 else '#dc2626'}">{round((mt.get('pct_mejora',0) or 0)*100,1)}%</div><div class="is">vs baseline 30 hrs</div></div>
   </div>
   <div class="grid2">
-    <div class="card"><h3>SLA promedio {ap} vs {aa}</h3><div class="csub">Comparativa anual</div><canvas id="cMejora" height="200"></canvas></div>
-    <div class="card"><h3>Automatización — Cuentas de Servicio Cloud</h3><div class="csub">Pre (Ene–Mar) vs Post (Abr–May) {aa}</div><canvas id="cAuto" height="200"></canvas>
+    <div class="card"><h3>SLA promedio {ap} vs {aa}</h3><div class="csub">Comparativa anual</div><div style="position:relative;height:200px"><canvas id="cMejora"></canvas></div></div>
+    <div class="card"><h3>Automatización — Cuentas de Servicio Cloud</h3><div class="csub">Pre (Ene–Mar) vs Post (Abr–May) {aa}</div><div style="position:relative;height:200px"><canvas id="cAuto"></canvas></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
         <div style="background:#fff7ed;border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;color:#9a3412;font-weight:600">PRE-AUTO (Ene–Mar)</div><div style="font-size:22px;font-weight:700;color:#c2410c">{sla_pre:.1f} hrs</div><div style="font-size:11px;color:#6b7280">{at['pre']['total']} tickets</div></div>
         <div style="background:#f0fdf4;border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;color:#166534;font-weight:600">POST-AUTO (Abr–May)</div><div style="font-size:22px;font-weight:700;color:#15803d">{sla_post:.1f} hrs</div><div style="font-size:11px;color:#6b7280">{at['post']['total']} tickets</div></div>
@@ -541,135 +548,38 @@ function renderCharts() {{
         {{label: '{aa}', data: VOL_AA, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.08)', fill: true, tension: 0.4, pointRadius: 4, borderWidth: 2.5}}
       ]
     }},
-    options: {{responsive: true, maintainAspectRatio: false, plugins: {{legend: {{position: 'top'}}}}, scales: {{y: {{beginAtZero: true}}}}}}
+    options: {{responsive: true, maintainAspectRatio: false, animation: false, plugins: {{legend: {{position: 'top'}}}}, scales: {{y: {{beginAtZero: true}}}}}}
   }});
 
-  // SLA mensual
-  makeChart('cSla', {{
-    type: 'line',
-    data: {{
-      labels: LABELS,
-      datasets: [
-        {{label: '{ap}', data: SLA_AP, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.08)', fill: true, tension: 0.4, pointRadius: 4, borderWidth: 2.5, spanGaps: false}},
-        {{label: '{aa}', data: SLA_AA, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.08)', fill: true, tension: 0.4, pointRadius: 4, borderWidth: 2.5, spanGaps: false}}
-      ]
-    }},
-    options: {{responsive: true, maintainAspectRatio: false, plugins: {{legend: {{position: 'top'}}}}, scales: {{y: {{ticks: {{callback: v => v + ' hrs'}}}}}}}}
-  }});
+  var OPT = {{animation: false}};
 
-  // Aprobación vs Tarea
-  makeChart('cAprob', {{
-    type: 'bar',
-    data: {{
-      labels: ['SLA Tarea {ap}', 'SLA Tarea {aa}', 'SLA Aprob {ap}', 'SLA Aprob {aa}'],
-      datasets: [{{
-        data: [SLA_T_AP, SLA_T_AA, SLA_A_AP, SLA_A_AA],
-        backgroundColor: ['rgba(59,130,246,.7)', 'rgba(16,185,129,.7)', 'rgba(245,158,11,.7)', 'rgba(6,182,212,.7)'],
-        borderRadius: 4
-      }}]
-    }},
-    options: {{responsive: true, maintainAspectRatio: false, plugins: {{legend: {{display: false}}}}, scales: {{y: {{ticks: {{callback: v => v + ' hrs'}}}}}}}}
-  }});
+  makeChart('cSla', {{type:'line', data:{{labels:LABELS, datasets:[
+    {{label:'{ap}', data:SLA_AP, borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,.08)', fill:true, tension:.4, pointRadius:4, borderWidth:2.5, spanGaps:false}},
+    {{label:'{aa}', data:SLA_AA, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,.08)', fill:true, tension:.4, pointRadius:4, borderWidth:2.5, spanGaps:false}}
+  ]}}, options:{{...OPT, responsive:true, maintainAspectRatio:false, plugins:{{legend:{{position:'top'}}}}, scales:{{y:{{ticks:{{callback:v=>v+' hrs'}}}}}}}} }});
 
-  // Top 10
-  makeChart('cTop10', {{
-    type: 'bar',
-    data: {{
-      labels: TOP10_LABELS,
-      datasets: [{{label: 'SLA (hrs)', data: TOP10_DATA, backgroundColor: TOP10_COLORS, borderRadius: 3}}]
-    }},
-    options: {{indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: {{legend: {{display: false}}}}, scales: {{x: {{ticks: {{callback: v => v + 'h'}}}}}}}}
-  }});
+  makeChart('cAprob', {{type:'bar', data:{{labels:['SLA Tarea {ap}','SLA Tarea {aa}','SLA Aprob {ap}','SLA Aprob {aa}'], datasets:[{{data:[SLA_T_AP,SLA_T_AA,SLA_A_AP,SLA_A_AA], backgroundColor:['rgba(59,130,246,.7)','rgba(16,185,129,.7)','rgba(245,158,11,.7)','rgba(6,182,212,.7)'], borderRadius:4}}]}}, options:{{...OPT, responsive:true, maintainAspectRatio:false, plugins:{{legend:{{display:false}}}}, scales:{{y:{{ticks:{{callback:v=>v+' hrs'}}}}}}}} }});
 
-  // Grupo resolutor
-  makeChart('cGrupo', {{
-    type: 'bar',
-    data: {{
-      labels: GRUPO_LABELS,
-      datasets: [{{label: 'SLA prom (hrs)', data: GRUPO_DATA, backgroundColor: 'rgba(59,130,246,.75)', borderRadius: 3}}]
-    }},
-    options: {{indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: {{legend: {{display: false}}}}, scales: {{x: {{ticks: {{callback: v => v + 'h'}}}}}}}}
-  }});
+  makeChart('cTop10', {{type:'bar', data:{{labels:TOP10_LABELS, datasets:[{{label:'SLA (hrs)', data:TOP10_DATA, backgroundColor:TOP10_COLORS, borderRadius:3}}]}}, options:{{...OPT, indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{{legend:{{display:false}}}}, scales:{{x:{{ticks:{{callback:v=>v+'h'}}}}}}}} }});
 
-  // Por formulario
-  makeChart('cForm', {{
-    type: 'bar',
-    data: {{
-      labels: FORM_LABELS,
-      datasets: [
-        {{label: '% Aprobación', data: FORM_PCT_A, backgroundColor: 'rgba(245,158,11,.8)', borderRadius: 2}},
-        {{label: '% Post-aprobación', data: FORM_PCT_P, backgroundColor: 'rgba(59,130,246,.8)', borderRadius: 2}}
-      ]
-    }},
-    options: {{responsive: true, maintainAspectRatio: false, plugins: {{legend: {{position: 'bottom'}}}}, scales: {{x: {{stacked: true, ticks: {{maxRotation: 45}}}}, y: {{stacked: true, ticks: {{callback: v => v + '%'}}}}}}}}
-  }});
+  makeChart('cGrupo', {{type:'bar', data:{{labels:GRUPO_LABELS, datasets:[{{label:'SLA prom (hrs)', data:GRUPO_DATA, backgroundColor:'rgba(59,130,246,.75)', borderRadius:3}}]}}, options:{{...OPT, indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{{legend:{{display:false}}}}, scales:{{x:{{ticks:{{callback:v=>v+'h'}}}}}}}} }});
 
-  // Cumplimiento barras
-  makeChart('cCump', {{
-    type: 'bar',
-    data: {{
-      labels: CUMP_LABELS,
-      datasets: [{{
-        label: '% Cumplimiento',
-        data: CUMP_DATA,
-        backgroundColor: CUMP_DATA.map(v => v > 50 ? 'rgba(16,185,129,.8)' : v > 30 ? 'rgba(245,158,11,.8)' : 'rgba(220,38,38,.8)'),
-        borderRadius: 3
-      }}]
-    }},
-    options: {{responsive: true, maintainAspectRatio: false, plugins: {{legend: {{display: false}}}}, scales: {{y: {{max: 100, ticks: {{callback: v => v + '%'}}}}, x: {{ticks: {{maxRotation: 45}}}}}}}}
-  }});
+  makeChart('cForm', {{type:'bar', data:{{labels:FORM_LABELS, datasets:[
+    {{label:'% Aprobación', data:FORM_PCT_A, backgroundColor:'rgba(245,158,11,.8)', borderRadius:2}},
+    {{label:'% Post-aprobación', data:FORM_PCT_P, backgroundColor:'rgba(59,130,246,.8)', borderRadius:2}}
+  ]}}, options:{{...OPT, responsive:true, maintainAspectRatio:false, plugins:{{legend:{{position:'bottom'}}}}, scales:{{x:{{stacked:true, ticks:{{maxRotation:45}}}}, y:{{stacked:true, ticks:{{callback:v=>v+'%'}}}}}}}} }});
 
-  // Cumplimiento dona
+  makeChart('cCump', {{type:'bar', data:{{labels:CUMP_LABELS, datasets:[{{label:'% Cumplimiento', data:CUMP_DATA, backgroundColor:CUMP_DATA.map(v=>v>50?'rgba(16,185,129,.8)':v>30?'rgba(245,158,11,.8)':'rgba(220,38,38,.8)'), borderRadius:3}}]}}, options:{{...OPT, responsive:true, maintainAspectRatio:false, plugins:{{legend:{{display:false}}}}, scales:{{y:{{max:100, ticks:{{callback:v=>v+'%'}}}}, x:{{ticks:{{maxRotation:45}}}}}}}} }});
+
   var totalDentro = {sum(c['dentro'] for c in cump)};
   var totalFuera  = {sum(c['fuera'] for c in cump)};
-  makeChart('cCumpDona', {{
-    type: 'doughnut',
-    data: {{
-      labels: ['Dentro SLA', 'Fuera SLA'],
-      datasets: [{{data: [totalDentro, totalFuera], backgroundColor: ['#10b981', '#ef4444'], borderWidth: 1, borderColor: '#fff'}}]
-    }},
-    options: {{responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: {{legend: {{position: 'bottom'}}}}}}
-  }});
+  makeChart('cCumpDona', {{type:'doughnut', data:{{labels:['Dentro SLA','Fuera SLA'], datasets:[{{data:[totalDentro,totalFuera], backgroundColor:['#10b981','#ef4444'], borderWidth:1, borderColor:'#fff'}}]}}, options:{{...OPT, responsive:true, maintainAspectRatio:false, cutout:'60%', plugins:{{legend:{{position:'bottom'}}}}}} }});
 
-  // Aprobadores
-  makeChart('cAprob2', {{
-    type: 'bar',
-    data: {{
-      labels: APROB_LABELS,
-      datasets: [{{label: 'Tiempo prom (hrs)', data: APROB_DATA, backgroundColor: 'rgba(139,92,246,.75)', borderRadius: 3}}]
-    }},
-    options: {{indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: {{legend: {{display: false}}}}, scales: {{x: {{ticks: {{callback: v => v + ' hrs'}}}}}}}}
-  }});
+  makeChart('cAprob2', {{type:'bar', data:{{labels:APROB_LABELS, datasets:[{{label:'Tiempo prom (hrs)', data:APROB_DATA, backgroundColor:'rgba(139,92,246,.75)', borderRadius:3}}]}}, options:{{...OPT, indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{{legend:{{display:false}}}}, scales:{{x:{{ticks:{{callback:v=>v+' hrs'}}}}}}}} }});
 
-  // Mejora
-  makeChart('cMejora', {{
-    type: 'bar',
-    data: {{
-      labels: ['{ap}', '{aa}'],
-      datasets: [{{
-        label: 'SLA prom (hrs)',
-        data: [SLA_GLOBAL_AP, SLA_GLOBAL_AA],
-        backgroundColor: ['rgba(245,158,11,.8)', 'rgba(16,185,129,.8)'],
-        borderRadius: 4
-      }}]
-    }},
-    options: {{responsive: true, maintainAspectRatio: false, plugins: {{legend: {{display: false}}}}, scales: {{y: {{ticks: {{callback: v => v + ' hrs'}}}}}}}}
-  }});
+  makeChart('cMejora', {{type:'bar', data:{{labels:['{ap}','{aa}'], datasets:[{{label:'SLA prom (hrs)', data:[SLA_GLOBAL_AP,SLA_GLOBAL_AA], backgroundColor:['rgba(245,158,11,.8)','rgba(16,185,129,.8)'], borderRadius:4}}]}}, options:{{...OPT, responsive:true, maintainAspectRatio:false, plugins:{{legend:{{display:false}}}}, scales:{{y:{{ticks:{{callback:v=>v+' hrs'}}}}}}}} }});
 
-  // Pre/Post automatización
-  makeChart('cAuto', {{
-    type: 'bar',
-    data: {{
-      labels: ['Pre-auto (Ene–Mar)', 'Post-auto (Abr–May)'],
-      datasets: [{{
-        label: 'SLA prom (hrs)',
-        data: [SLA_PRE, SLA_POST],
-        backgroundColor: ['rgba(245,158,11,.8)', 'rgba(16,185,129,.8)'],
-        borderRadius: 4
-      }}]
-    }},
-    options: {{responsive: true, maintainAspectRatio: false, plugins: {{legend: {{display: false}}}}, scales: {{y: {{ticks: {{callback: v => v + ' hrs'}}}}}}}}
-  }});
+  makeChart('cAuto', {{type:'bar', data:{{labels:['Pre-auto (Ene–Mar)','Post-auto (Abr–May)'], datasets:[{{label:'SLA prom (hrs)', data:[SLA_PRE,SLA_POST], backgroundColor:['rgba(245,158,11,.8)','rgba(16,185,129,.8)'], borderRadius:4}}]}}, options:{{...OPT, responsive:true, maintainAspectRatio:false, plugins:{{legend:{{display:false}}}}, scales:{{y:{{ticks:{{callback:v=>v+' hrs'}}}}}}}} }});
 }}
 
 // Renderizar al cargar
