@@ -7,7 +7,7 @@ SN_BASE = os.environ.get("SN_BASE_URL", "")
 SN_USER = os.environ.get("SN_USERNAME", "")
 SN_PASS = os.environ.get("SN_PASSWORD", "")
 
-# 10 formularios exactos del Excel
+# 14 formularios exactos del Excel
 CAT_ITEMS = ",".join([
     "098c1d8333631610f9f4984a7e5c7b59",  # Gestión de Tablas
     "3ed9b2ce3bd26a10ee77c237f4e45ab0",  # Agendamiento de Componentes Nube
@@ -19,6 +19,11 @@ CAT_ITEMS = ",".join([
     "c919ef5b3bc4f610ee77c237f4e45a59",  # Creación de Proyecto PoC o Sandbox
     "109ce6453beb5e10d034caea26e45a2a",  # Gestión de Cuentas de Servicio Cloud
     "ec519fef339fa610f9f4984a7e5c7b54",  # Gestión de Usuarios Cloud
+    "3Df9c0948b3b98ae50d034caea26e45a3e", # Gestión de datasets
+    "b2c9d23533233e10f9f4984a7e5c7b23",  # Gestión de proxy transversal
+    "52bfcad333a40b90f9f4984a7e5c7b9a", # Managed Airflow
+    "05d2b30e3b780b10ee77c237f4e45a90", # Respaldo Cloud
+    "29a5a5a63b34cb10ee77c237f4e45a6e", # Gestión de rol aplicativo empresarial
 ])
 
 AUTH    = (SN_USER, SN_PASS)
